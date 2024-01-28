@@ -1,6 +1,7 @@
 import requests
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+
 
 def fetch_data():
     url = "https://gql.hashnode.com/"
@@ -38,7 +39,7 @@ def fetch_data():
     else:
         print(f"GraphQL request failed with status code {response.status_code}: {response.text}")
         return None
-
+    
 def split_text(text, max_length):
     """
     Split text into lines with a maximum length.
@@ -59,37 +60,56 @@ def split_text(text, max_length):
 
     return lines
 
+
+def markdown_to_paragraphs(markdown_content):
+    # Convert Markdown to paragraphs
+    paragraphs = markdown_content.split('\n\n')
+    return paragraphs
+
+
 def generate_pdf(data):
     if data:
         pdf_filename = "output.pdf"
-        
-        # Create a PDF
-        c = canvas.Canvas(pdf_filename, pagesize=letter)
 
         # Extract relevant data from the API response
         title = data["data"]["publication"]["post"]["title"]
-        content = data["data"]["publication"]["post"]["content"]["markdown"]
+        markdown_content = data["data"]["publication"]["post"]["content"]["markdown"]
         author_name = data["data"]["publication"]["post"]["author"]["name"]
 
+        # Convert Markdown to paragraphs
+        paragraphs = markdown_to_paragraphs(markdown_content)
+
+        # Create a PDF
+        c = canvas.Canvas(pdf_filename, pagesize=A4)
+
         # Add title to the PDF
-        c.setFont("Helvetica", 12)
-        title_lines = split_text(title, 80)  # Adjust the max_length as needed
+        c.setFont("Helvetica-Bold", 18)
+        title_lines = split_text(title, 100)
         for line_number, line in enumerate(title_lines):
-            c.drawString(100, 750 - line_number * 12, line)
+            c.drawString(100, 750 - line_number * 16, line)
 
         # Add content to the PDF
-        c.setFont("Helvetica", 10)
-        content_lines = split_text(content, 80)  # Adjust the max_length as needed
-        for line_number, line in enumerate(content_lines):
-            c.drawString(100, 730 - line_number * 12, line)
+        c.setFont("Helvetica", 12)
+        y_position = 730
+        for paragraph in paragraphs:
+            lines = split_text(paragraph, 70)
+            for line in lines:
+                c.drawString(100, y_position, line)
+                y_position -= 12  # Adjust the line spacing as needed
+                if y_position < 50:
+                    # Move to the next page if the content exceeds the page height
+                    c.showPage()
+                    y_position = 750
 
         # Add author name to the footer
-        c.setFont("Helvetica", 8)
+        c.setFont("Helvetica-Oblique", 10)
         c.drawString(100, 50, f"Author: {author_name}")
 
         # Save the PDF
         c.save()
+
         print(f"PDF generated successfully: {pdf_filename}")
+
 
 if __name__ == "__main__":
     api_response = fetch_data()
