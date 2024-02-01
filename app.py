@@ -1,37 +1,39 @@
+from flask import Flask, render_template, request, send_file
 import os
 import requests
 from pyhtml2pdf import converter
 import re
 import subprocess
 
-def fetch_html_content():
+app = Flask(__name__)
+
+def fetch_html_content(host, slug):
     url = "https://gql.hashnode.com/"
 
-    query = """
-    query Publication {
-      publication(host: "atharva08.hashnode.dev") {
-        post(slug: "efficiency-unleashed-dockerizing-and-optimizing-a-fastapi-app-with-slimtoolkit-and-github-actions") {
+    query = f"""
+    query Publication {{
+      publication(host: "{host}") {{
+        post(slug: "{slug}") {{
           title
-          content {
+          content {{
             html
-          }
-          author {
+          }}
+          author {{
             name
-          }
-        }
-      }
-    }
+          }}
+        }}
+      }}
+    }}
     """
 
     data = {"query": query}
-
     response = requests.post(url, json=data)
 
     if response.status_code == 200:
         result = response.json()
-        title = result["data"]["publication"]["post"]["title"]
-        author_name = result["data"]["publication"]["post"]["author"]["name"]
-        html_content = result["data"]["publication"]["post"]["content"]["html"]
+        title = result.get("data", {}).get("publication", {}).get("post", {}).get("title", "")
+        author_name = result.get("data", {}).get("publication", {}).get("post", {}).get("author", {}).get("name", "")
+        html_content = result.get("data", {}).get("publication", {}).get("post", {}).get("content", {}).get("html", "")
         return title, author_name, html_content
     else:
         print(f"GraphQL request failed with status code {response.status_code}: {response.text}")
@@ -90,26 +92,67 @@ def convert_html_to_epub(title, html_filename, epub_filename):
     # Remove the temporary HTML file
     os.remove(html_filename)
 
+def extract_host_and_slug(blog_link):
+    # Assuming the format is "https://host/slug"
+    parts = blog_link.split("/")
+    host = parts[2] if len(parts) > 2 else ""
+    slug = parts[3] if len(parts) > 3 else ""
+    return host, slug
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    host = ""
+    slug = ""
+    title = ""
+    author_name = ""
+    html_content = ""
+
+    if request.method == 'POST':
+        blog_link = request.form['blog_link']
+        host, slug = extract_host_and_slug(blog_link)
+        title, author_name, html_content = fetch_html_content(host, slug)
+
+    return render_template('index.html', host=host, slug=slug, title=title, author_name=author_name, html_content=html_content)
+
+@app.route('/convert_pdf', methods=['POST'])
+def convert_pdf():
+    host = request.form['host']
+    slug = request.form['slug']
+    title, author_name, html_content = fetch_html_content(host, slug)
+
+    cleaned_html = remove_emojis(html_content)
+    html_filename = create_html_file(cleaned_html)
+
+    pdf_filename = "article.pdf"
+    convert_html_to_pdf(title, author_name, html_filename, pdf_filename)
+
+    # Move removal outside the if condition
+    # Remove HTML file after both PDF and EPUB conversions
+    if os.path.exists(html_filename):
+        os.remove(html_filename)
+
+    # Provide a download link for the generated PDF
+    return send_file(pdf_filename, as_attachment=True)
+
+@app.route('/convert_epub', methods=['POST'])
+def convert_epub():
+    host = request.form['host']
+    slug = request.form['slug']
+    title, _, html_content = fetch_html_content(host, slug)
+
+    cleaned_html = remove_emojis(html_content)
+    html_filename = create_html_file(cleaned_html)
+
+    epub_filename = "article.epub"
+    convert_html_to_epub(title, html_filename, epub_filename)
+
+    # Move removal outside the if condition
+    # Remove HTML file after both PDF and EPUB conversions
+    if os.path.exists(html_filename):
+        os.remove(html_filename)
+
+    # Provide a download link for the generated EPUB
+    return send_file(epub_filename, as_attachment=True)
+
 if __name__ == "__main__":
-    title, author_name, html_content = fetch_html_content()
-
-    if title and author_name and html_content:
-        # Remove emojis from the HTML content
-        cleaned_html = remove_emojis(html_content)
-
-        # Create and save the cleaned HTML file
-        html_filename = create_html_file(cleaned_html)
-
-        # PDF conversion
-        pdf_filename = "output.pdf"
-        convert_html_to_pdf(title, author_name, html_filename, pdf_filename)
-        print(f"PDF generated successfully: {pdf_filename}")
-
-        # EPUB conversion
-        epub_filename = "output.epub"
-        convert_html_to_epub(title, html_filename, epub_filename)
-        print(f"EPUB generated successfully: {epub_filename}")
-
-        # Get the absolute path of the HTML file
-        abs_html_path = os.path.abspath(html_filename)
-        print(f"HTML file created at: {abs_html_path}")
+    app.run(debug=True)
