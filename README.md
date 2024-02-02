@@ -14,4 +14,4 @@ source ./venv/bin/activate
 4. run app.py - `python3 app.py`
 
 
-Blog Link - https://atharva08.hashnode.dev/hashcraft-craft-ebook-and-pdf-doc-from-your-hashnode-blog
+**Blog Link** - https://atharva08.hashnode.dev/hashcraft-craft-ebook-and-pdf-doc-from-your-hashnode-blog
