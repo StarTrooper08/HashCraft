@@ -80,7 +80,7 @@ def convert_html_to_pdf(title, author_name, html_filename, pdf_filename):
         temp_html_file.write(full_html)
 
     # Convert the combined HTML to PDF
-    converter.convert(f'file:///{os.path.abspath(temp_html_filename)}', pdf_filename)
+    converter.convert(f'file:///{os.path.abspath(temp_html_filename)}', pdf_filename,  install_driver=False)
 
     # Remove the temporary HTML file
     os.remove(temp_html_filename)
@@ -155,4 +155,5 @@ def convert_epub():
     return send_file(epub_filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=5000)
+
