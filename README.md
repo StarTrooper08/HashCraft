@@ -13,5 +13,11 @@ source ./venv/bin/activate
 3. pip install -r requirements.txt
 4. run app.py - `python3 app.py`
 
+---OR---
+### Docker
+Run it locally using Docker
+```bash
+docker pull ghcr.io/startrooper08/hashcraft:main
+```
 
 **Blog Link** - https://atharva08.hashnode.dev/hashcraft-craft-ebook-and-pdf-doc-from-your-hashnode-blog
