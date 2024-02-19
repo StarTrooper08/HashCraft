@@ -3,21 +3,21 @@ on:
   push: main
 
 permissions:
-  contents: read
+   contents: read
 
 jobs:
    release:
      permissions:
         contents: write # to be able to publish a GitHub release
 
-    name: Release
-    runs-on: ubuntu-latest
+     name: Release
+     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+     steps:
+       - name: Checkout repository
+         uses: actions/checkout@v3
 
-      - name: Release
-        uses: huggingface/semver-release-action@latest
-        env:
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       - name: Release
+         uses: huggingface/semver-release-action@latest
+         env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
