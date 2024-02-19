@@ -13,5 +13,3 @@ jobs:
 
       - name: Release
         uses: huggingface/semver-release-action@latest
-        with:
-          branches: ["main"]
