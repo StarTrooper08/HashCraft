@@ -1,6 +1,7 @@
 name: Release project
 on:
-   push: ["main"]
+   push: 
+      branches: ['main']
 
 permissions:
    contents: read
