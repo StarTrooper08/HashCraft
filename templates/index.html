@@ -53,6 +53,12 @@
         </div>
       </form>
 
+       {% if error_message %}
+           <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+           </div>
+       {% endif %}
+
 
       {% if title %}
       <h2>{{ title }}</h2>
