@@ -1,6 +1,6 @@
 name: Release project
 on:
-  push: main
+   push: ["main"]
 
 permissions:
    contents: read
