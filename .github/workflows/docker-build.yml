@@ -47,8 +47,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ github.event.release.tag_name }}
+          labels: ${{ github.event.release.tag_name }}
       
       - name: Optimize Docker Image
         run: slim build --target ghcr.io/startrooper08/hashcraft:main --http-probe=true --expose 80
