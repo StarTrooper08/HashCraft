@@ -1,8 +1,12 @@
 apiVersion: v1
 kind: Pod
+
 metadata:
   name: hashcraft
+  labels:
+    app: hashcraft-pod
+    type: front-end
 spec:
-  containers: 
-     name: hashcraft
-     image: ghcr.io/startrooper08/hashcraft:main
+  containers:
+    - name: hashcraft
+      image: atharvas08/hashcraft:latest
