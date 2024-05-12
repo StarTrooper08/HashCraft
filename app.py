@@ -125,6 +125,17 @@ def convert_pdf():
 
     pdf_filename = "article.pdf"
     convert_html_to_pdf(title, author_name, html_filename, pdf_filename)
+    # Add Lua filter for image resizing
+    lua_filter = """
+        function Image(el)
+            el.attr.width = "100"
+            el.attr.height = "85"
+            return el
+        end
+    """
+
+    # Call Pandoc with Lua filter
+    subprocess.run(['pandoc', '-o', pdf_filename, '--lua-filter', '<(echo "' + lua_filter + '")', '--from', 'html', '--to', 'pdf'], input=html_content.encode())
 
     # Move removal outside the if condition
     # Remove HTML file after both PDF and EPUB conversions
