@@ -1,24 +1,39 @@
 name: Release project
+
 on:
-   push: 
-      branches: ['main']
+  push:
+    branches: ['main']
 
 permissions:
-   contents: read
+  contents: read
 
 jobs:
-   release:
-     permissions:
-        contents: write # to be able to publish a GitHub release
+  release:
+    permissions:
+      contents: write # to be able to publish a GitHub release
 
-     name: Release
-     runs-on: ubuntu-latest
+    name: Release
+    runs-on: ubuntu-latest
 
-     steps:
-       - name: Checkout repository
-         uses: actions/checkout@v3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-       - name: Release
-         uses: huggingface/semver-release-action@latest
-         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get the latest tag version
+        id: get_version
+        run: echo "TAG=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+
+      - name: Create release title
+        id: create_title
+        run: |
+          REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          VERSION=$TAG
+          RELEASE_TITLE="$REPO_NAME v$VERSION"
+          echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
+
+      - name: Release
+        uses: huggingface/semver-release-action@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_title: ${{ env.RELEASE_TITLE }}
