@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y \
 ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV CHROME_PATH=/usr/lib/chromium/
 
+ARG CONTAINER_VERSION
+ENV CONTAINER_VERSION ${CONTAINER_VERSION}
+
 WORKDIR /app
 
 # Copy requirements and install them
